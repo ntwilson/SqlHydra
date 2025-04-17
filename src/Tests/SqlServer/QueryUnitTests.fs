@@ -327,11 +327,20 @@ let ``Where Customer isIn List``() =
     let sql =  
         select {
             for c in Sales.Customer do
-            where (isIn c.CustomerID [30018;29545;29954])
+            where (c.PersonID <> None && isIn c.CustomerID [30018;29545;29954])
         }
         |> toSql
 
-    sql.Contains("WHERE ([c].[CustomerID] IN (@p0, @p1, @p2))") =! true
+    sql.Contains("WHERE (([c].[PersonID] IS NOT NULL) AND ([c].[CustomerID] IN (@p0, @p1, @p2)))") =! true
+
+    let sql =  
+        select {
+            for c in Sales.Customer do
+            where (isIn c.CustomerID [30018;29545;29954] && c.PersonID <> None)
+        }
+        |> toSql
+
+    sql.Contains("WHERE (([c].[CustomerID] IN (@p0, @p1, @p2)) AND ([c].[PersonID] IS NOT NULL))") =! true
 
 [<Test>]
 let ``Where Customer |=| List``() = 
